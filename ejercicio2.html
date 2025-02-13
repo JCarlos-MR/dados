@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lanzamiento de Dados</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 1em;
+        }
+        .container {
+            padding: 20px;
+        }
+        table {
+            width: 50%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Lanzamiento de Dados</h1>
+    </header>
+    <div class="container">
+        <button onclick="lanzarActualizar()">Lanzar</button>
+        <button onclick="verResultados()">Resultados</button>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Dado 1</th>
+                    <th>Dado 2</th>
+                    <th>Suma</th>
+                </tr>
+            </thead>
+            <tbody id="tabla">
+                <tr> 
+                    <td><img id="dado1" src="./images/cara1.png"></td>
+                    <td><img id="dado2" src="./images/cara2.png"></td>
+                    <td id="Suma">3</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p><strong>Todas las sumas:</strong></p>
+        <p id="sumas"></p>
+    </div>
+
+    <script>
+        function lanzarDados() {
+            return Math.floor(Math.random() * 6) + 1;
+        }
+
+        function obtenerNombreImg(valor) {
+            return `./images/cara${valor}.png`;
+        }
+
+        async function lanzarActualizar() {
+            console.log("Lanzando los dados...");
+            
+            // Generar valores
+            let dado1 = lanzarDados();
+            let dado2 = lanzarDados();
+            let suma = dado1 + dado2;
+
+            console.log(`Dado1: ${dado1}, Dado2: ${dado2}, Suma: ${suma}`);
+
+            // Actualizar la tabla con imágenes
+            let tbody = document.getElementById("tabla");
+            let fila = document.createElement("tr");
+
+            let celda1 = document.createElement("td");
+            let imgDado1 = document.createElement("img");
+            imgDado1.src = obtenerNombreImg(dado1);
+            celda1.appendChild(imgDado1);
+
+            let celda2 = document.createElement("td");
+            let imgDado2 = document.createElement("img");
+            imgDado2.src = obtenerNombreImg(dado2);
+            celda2.appendChild(imgDado2);
+
+            let celda3 = document.createElement("td");
+            celda3.textContent = suma;
+
+            fila.appendChild(celda1);
+            fila.appendChild(celda2);
+            fila.appendChild(celda3);
+            tbody.appendChild(fila);
+
+            // Enviar los resultados a la API
+            try {
+                let response = await fetch("https://67ac82963f5a4e1477dacf5d.mockapi.io/libros/dados", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dado1, dado2, suma })
+                });
+                if (!response.ok) throw new Error("Error al guardar en la API");
+            } catch (error) {
+                console.error("Error en la API:", error);
+            }
+        }
+
+        async function verResultados() {
+            console.log("Obteniendo resultados...");
+            try {
+                let respuesta = await fetch("https://67ac82963f5a4e1477dacf5d.mockapi.io/libros/dados");
+                let datos = await respuesta.json();
+
+                let sumasTexto = datos.map(el => el.suma).join(", ");
+                document.getElementById("sumas").textContent = sumasTexto;
+
+            } catch (error) {
+                console.error("Error al obtener datos de la API:", error);
+            }
+        }
+    </script>
+</body>
+</html>
+
